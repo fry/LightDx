@@ -1,6 +1,7 @@
 ﻿using LightDx.InputAttributes;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -18,6 +19,8 @@ namespace LightDx
             public Vector4 Position;
             [TexCoord]
             public Vector4 TexCoord;
+            [Color]
+            public Vector4 Color;
         }
 
         private struct VSConstant
@@ -45,13 +48,13 @@ namespace LightDx
 
             _vertexProcessor = _pipeline.CreateVertexDataProcessor<Vertex>();
             _array = new[] {
-                new Vertex { TexCoord = new Vector4(0, 0, 0, 0), Position = new Vector4(0, 0, 0, 0) },
-                new Vertex { TexCoord = new Vector4(1, 0, 0, 0), Position = new Vector4(1, 0, 0, 0) },
-                new Vertex { TexCoord = new Vector4(0, 1, 0, 0), Position = new Vector4(0, 1, 0, 0) },
+                new Vertex { TexCoord = new Vector4(0, 0, 0, 0), Position = new Vector4(0, 0, 0, 0), Color = Color.Black.WithAlpha(1) },
+                new Vertex { TexCoord = new Vector4(1, 0, 0, 0), Position = new Vector4(1, 0, 0, 0), Color = Color.Black.WithAlpha(1) },
+                new Vertex { TexCoord = new Vector4(0, 1, 0, 0), Position = new Vector4(0, 1, 0, 0), Color = Color.Black.WithAlpha(1) },
 
-                new Vertex { TexCoord = new Vector4(0, 1, 0, 0), Position = new Vector4(0, 1, 0, 0) },
-                new Vertex { TexCoord = new Vector4(1, 0, 0, 0), Position = new Vector4(1, 0, 0, 0) },
-                new Vertex { TexCoord = new Vector4(1, 1, 0, 0), Position = new Vector4(1, 1, 0, 0) },
+                new Vertex { TexCoord = new Vector4(0, 1, 0, 0), Position = new Vector4(0, 1, 0, 0), Color = Color.Black.WithAlpha(1) },
+                new Vertex { TexCoord = new Vector4(1, 0, 0, 0), Position = new Vector4(1, 0, 0, 0), Color = Color.Black.WithAlpha(1) },
+                new Vertex { TexCoord = new Vector4(1, 1, 0, 0), Position = new Vector4(1, 1, 0, 0), Color = Color.Black.WithAlpha(1) },
             };
             _buffer = _vertexProcessor.CreateDynamicBuffer(6);
 
@@ -110,22 +113,22 @@ namespace LightDx
         public void DrawTexture(Texture2D tex, int x, int y, int w, int h)
         {
             CheckPipeline();
-            DrawTextureInternal(tex, x, y, w, h, 0, 0, tex.Width, tex.Height, 0, 0, 0);
+            DrawTextureInternal(tex, x, y, w, h, 0, 0, tex.Width, tex.Height, 0, 0, 0, Color.Black.WithAlpha(1));
         }
 
         public void DrawTexture(Texture2D tex, float x, float y, float w, float h, int tx, int ty, int tw, int th)
         {
             CheckPipeline();
-            DrawTextureInternal(tex, x, y, w, h, tx, ty, tw, th, 0, 0, 0);
+            DrawTextureInternal(tex, x, y, w, h, tx, ty, tw, th, 0, 0, 0, Color.Black.WithAlpha(1));
         }
 
-        public void DrawTexture(Texture2D tex, float x, float y, float w, float h, int tx, int ty, int tw, int th, float cx, float cy, float rotate)
+        public void DrawTexture(Texture2D tex, float x, float y, float w, float h, int tx, int ty, int tw, int th, float cx, float cy, float rotate, Vector4 color)
         {
             CheckPipeline();
-            DrawTextureInternal(tex, x, y, w, h, tx, ty, tw, th, cx, cy, rotate);
+            DrawTextureInternal(tex, x, y, w, h, tx, ty, tw, th, cx, cy, rotate, color);
         }
 
-        private void DrawTextureInternal(Texture2D tex, float x, float y, float w, float h, int tx, int ty, int tw, int th, float cx, float cy, float rotate)
+        private void DrawTextureInternal(Texture2D tex, float x, float y, float w, float h, int tx, int ty, int tw, int th, float cx, float cy, float rotate, Vector4 color)
         {
             var fx = tx / (float)tex.Width;
             var fy = ty / (float)tex.Height;
@@ -139,27 +142,32 @@ namespace LightDx
             var s = (float)Math.Sin(rotate);
             var c = (float)Math.Cos(rotate);
 
-            UpdatePoint(ref _array[0], x, y, cl, ct, s, c, fx, fy);
-            UpdatePoint(ref _array[1], x, y, cr, ct, s, c, fr, fy);
-            UpdatePoint(ref _array[2], x, y, cl, cb, s, c, fx, fb);
-            UpdatePoint(ref _array[3], x, y, cl, cb, s, c, fx, fb);
-            UpdatePoint(ref _array[4], x, y, cr, ct, s, c, fr, fy);
-            UpdatePoint(ref _array[5], x, y, cr, cb, s, c, fr, fb);
+            UpdatePoint(ref _array[0], x, y, cl, ct, s, c, fx, fy, color);
+            UpdatePoint(ref _array[1], x, y, cr, ct, s, c, fr, fy, color);
+            UpdatePoint(ref _array[2], x, y, cl, cb, s, c, fx, fb, color);
+            UpdatePoint(ref _array[3], x, y, cl, cb, s, c, fx, fb, color);
+            UpdatePoint(ref _array[4], x, y, cr, ct, s, c, fr, fy, color);
+            UpdatePoint(ref _array[5], x, y, cr, cb, s, c, fr, fb, color);
 
             _pipeline.SetResource(0, tex);
             _buffer.Update(_array);
             _buffer.DrawAll();
         }
 
-        private void UpdatePoint(ref Vertex v, float x, float y, float dx, float dy, float s, float c, float tx, float ty)
+        private void UpdatePoint(ref Vertex v, float x, float y, float dx, float dy, float s, float c, float tx, float ty, Vector4 color)
         {
             v.Position.X = x + dx * c - dy * s;
             v.Position.Y = y + dy * c + dx * s;
             v.TexCoord.X = tx;
             v.TexCoord.Y = ty;
+            v.Color = color;
         }
 
-        public void DrawString(TextureFontCache font, string str, float x, float y, float maxWidth)
+        public void DrawString(TextureFontCache font, string str, float x, float y, float maxWidth) {
+            DrawString(font, str, x, y, maxWidth, Color.Black.WithAlpha(1));
+        }
+
+        public void DrawString(TextureFontCache font, string str, float x, float y, float maxWidth, Vector4 color)
         {
             CheckPipeline();
             font.CacheString(str);
@@ -169,17 +177,17 @@ namespace LightDx
             {
                 if (i < str.Length - 1 && Char.IsSurrogatePair(str[i], str[i + 1]))
                 {
-                    drawX = DrawChar(font, str[i] | str[i + 1] << 16, drawX, y, maxX);
+                    drawX = DrawChar(font, str[i] | str[i + 1] << 16, drawX, y, maxX, color);
                     i += 1;
                 }
                 else
                 {
-                    drawX = DrawChar(font, str[i], drawX, y, maxX);
+                    drawX = DrawChar(font, str[i], drawX, y, maxX, color);
                 }
             }
         }
 
-        private float DrawChar(TextureFontCache font, int c, float x, float y, float maxX)
+        private float DrawChar(TextureFontCache font, int c, float x, float y, float maxX, Vector4 color)
         {
             font.DrawChar(c, out var b, out var k, out var ax, out var h);
             x += k;
@@ -190,7 +198,7 @@ namespace LightDx
             if (b.Bitmap != null)
             {
                 //Non-space character
-                DrawTextureInternal(b.Bitmap, x, y, b.Width, b.Height, b.X, b.Y, b.Width, b.Height, 0, 0, 0);
+                DrawTextureInternal(b.Bitmap, x, y, b.Width, b.Height, b.X, b.Y, b.Width, b.Height, 0, 0, 0, color);
             }
             return x + ax;
         }
@@ -200,12 +208,14 @@ struct VS_IN
 {
 	float4 pos : POSITION;
 	float4 tex : TEXCOORD;
+	float4 col : COLOR;
 };
 
 struct PS_IN
 {
 	float4 pos : SV_POSITION;
 	float4 tex : TEXCOORD;
+	float4 col : COLOR;
 };
 
 cbuffer VS_CONSTANT_BUFFER : register(b0)
@@ -222,6 +232,7 @@ PS_IN VS(VS_IN input)
 	output.pos.y = 1 - (input.pos.y / fHeight * 2);
 	output.pos.w = 1;
 	output.tex = input.tex;
+    output.col = input.col;
 
 	return output;
 }
@@ -231,7 +242,7 @@ SamplerState textureSampler : register(s0);
 
 float4 PS(PS_IN input) : SV_Target
 {
-	return faceTexture.Sample(textureSampler, input.tex.xy);
+	return faceTexture.Sample(textureSampler, input.tex.xy).a * input.col;
 }";
     }
 }
