@@ -33,6 +33,9 @@ namespace Cube
             return new Vector3(offset.X, offset.Y, offset.Z);
         }
 
+        public Matrix4x4 GetViewMatrix() {
+            return MatrixHelper.CreateLookAt(Position, Position + CalcOffset(), Vector3.UnitZ).Transpose();
+        }
         public Vector3 MoveHorizontal(Vector4 b)
         {
             Vector4 move = b;
