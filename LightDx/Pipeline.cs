@@ -32,6 +32,7 @@ namespace LightDx
         private IntPtr _signatureBlob;
 
         private IntPtr _blendPtr;
+        private IntPtr _rasterizerStatePtr;
 
         private readonly InputTopology _topology;
 
@@ -92,6 +93,7 @@ namespace LightDx
             NativeHelper.Dispose(ref _pixel);
             NativeHelper.Dispose(ref _signatureBlob);
             NativeHelper.Dispose(ref _blendPtr);
+            NativeHelper.Dispose(ref _rasterizerStatePtr);
 
             if (disposing)
             {
@@ -296,6 +298,14 @@ namespace LightDx
             }
         }
 
+        public void SetRasterizerState(RasterizerState r) {
+            NativeHelper.Dispose(ref _rasterizerStatePtr);
+            _rasterizerStatePtr = r.CreateRasterizerState(_device);
+            if (_isBound) {
+                ApplyRasterizerState();
+            }
+        }
+
         public void SetSampler(int slot, Sampler s)
         {
             throw new NotImplementedException();
@@ -393,9 +403,12 @@ namespace LightDx
             DeviceContext.PSSetShader(_device.ContextPtr, _pixel, IntPtr.Zero, 0);
         }
 
-        private void ApplyBlender()
-        {
+        private void ApplyBlender() {
             DeviceContext.OMSetBlendState(_device.ContextPtr, _blendPtr, IntPtr.Zero, 0xFFFFFFFF);
+        }
+
+        private void ApplyRasterizerState() {
+            DeviceContext.RSSetState(_device.ContextPtr, _rasterizerStatePtr);
         }
 
         private void ApplyVSResource(int slot, AbstractShaderResourceBuffer buffer)
@@ -463,6 +476,7 @@ namespace LightDx
             ApplyShaders();
             ApplyViewport();
             ApplyBlender();
+            ApplyRasterizerState();
             //TODO Samplers
             //TODO depth
             foreach (var vsK in _vsConstants)

@@ -152,6 +152,20 @@ namespace LightDx.Natives
         public RenderTargetBlendDescription RenderTarget6;
         public RenderTargetBlendDescription RenderTarget7;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct RasterizerDecription {
+        public int FillMode;
+        public int CullMode;
+        public int FrontCounterClockwise;
+        public int DepthBias;
+        public float DepthBiasClamp;
+        public float SlopeScaledDepthBias;
+        public int DepthClipEnable;
+        public int ScissorEnable;
+        public int MultisampleEnable;
+        public int AntialiasedLineEnable;
+    }
     
     internal class Native
     {
@@ -232,11 +246,14 @@ namespace LightDx.Natives
             IntPtr resource, int* desc, out IntPtr r);
         public static readonly CreateDepthStencilViewDelegate CreateDepthStencilView =
             CalliGenerator.GetCalliDelegate<CreateDepthStencilViewDelegate>(10);
-        
-        public delegate uint CreateBlendStateDelegate(IntPtr @this,
+
+        public delegate uint CreateStateDelegate(IntPtr @this,
             IntPtr option, out IntPtr r);
-        public static readonly CreateBlendStateDelegate CreateBlendState =
-            CalliGenerator.GetCalliDelegate<CreateBlendStateDelegate>(20);
+        public static readonly CreateStateDelegate CreateBlendState =
+            CalliGenerator.GetCalliDelegate<CreateStateDelegate>(20);
+
+        public static readonly CreateStateDelegate CreateRasterizerState  =
+            CalliGenerator.GetCalliDelegate<CreateStateDelegate>(22);
     }
 
     internal static class SwapChain
@@ -371,6 +388,10 @@ namespace LightDx.Natives
             IntPtr b, IntPtr color, uint mask);
         public static readonly OMSetBlendStateDelegate OMSetBlendState =
             CalliGenerator.GetCalliDelegate<OMSetBlendStateDelegate>(35);
+
+        public delegate void RSSetStateDelegate(IntPtr @this, IntPtr state);
+        public static readonly RSSetStateDelegate RSSetState =
+            CalliGenerator.GetCalliDelegate<RSSetStateDelegate>(43);
 
         public delegate void SetConstantBuffersDelegate(IntPtr @this, uint start, uint num, ref IntPtr ptr);
         public static readonly SetConstantBuffersDelegate VSSetConstantBuffers =

@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractFontCache.cs" />
+    <Compile Include="RasterizerState.cs" />
     <Compile Include="Blenders.cs" />
     <Compile Include="CalliGenerator.cs" />
     <Compile Include="ComScopeGuard.cs" />

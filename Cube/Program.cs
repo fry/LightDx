@@ -56,6 +56,8 @@ namespace Cube
                     ShaderSource.FromResource("Shader.fx", ShaderType.Vertex | ShaderType.Pixel));
                 pipeline.Apply();
 
+                pipeline.SetRasterizerState(new RasterizerState(FillMode.Wireframe, CullMode.None));
+
                 var vertexConstant = pipeline.CreateConstantBuffer<Matrix4x4>();
                 pipeline.SetConstant(ShaderType.Vertex, 0, vertexConstant);
 
