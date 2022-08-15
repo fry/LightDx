@@ -12,6 +12,8 @@ namespace LightDx
     public enum InputTopology
     {
         Point = 1,
+        Line = 2,
+        LineStrip = 3,
         Triangle = 4,
     }
     
